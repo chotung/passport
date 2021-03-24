@@ -36,14 +36,23 @@ mongoose
   .then((_) => console.log("Connected Succuessfully to MongoDB"))
   .catch((err) => console.error(err));
 
-const authType = "jwt"
-const auth = passport.authenticate(authType, { session: false });
+const authType = "oauth2"
+const auth = passport.authenticate(authType, { failureRedirect: '/login' });
 
 // app.use("/users", auth, userRoutes);
-app.use("/users", userRoutes);
+// app.use("/users", userRoutes);
+
+// app.get("/", auth, (req, res) => {
+// 	res.send("you're authed")
+// })
+
+app.get('/api/auth/authorize', passport.authenticate("oauth2"))
+app.get('/api/auth/authorize/callback', auth, (req, res) => {
+	res.redirect('/')
+})
 
 app.get("/", auth, (req, res) => {
-	res.send("you're authed")
+	res.send('authed!')
 })
 
 app.listen(port, (err) => {
