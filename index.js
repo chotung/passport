@@ -29,14 +29,15 @@ app.use((req, res, next) => {
 // MONGOOSE/MONGO
 mongoose.set("useCreateIndex", true);
 mongoose
-  .connect(process.env.MONGOURI || "mongodb://localhost:27017", {
+  .connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
   .then((_) => console.log("Connected Succuessfully to MongoDB"))
   .catch((err) => console.error(err));
 
-const auth = passport.authenticate("jwt", { session: false });
+const authType = "jwt"
+const auth = passport.authenticate(authType, { session: false });
 
 // app.use("/users", auth, userRoutes);
 app.use("/users", userRoutes);

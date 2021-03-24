@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken");
 const errors = require("errors");
 require("dotenv").config();
 
-const secret = process.env.SECRET || "somesecretasadefault";
+const secret = process.env.SECRET;
 
 router.post("/register", (req, res) => {
   User.findOne({ emailAddress: req.body.emailAddress }).then((user) => {
