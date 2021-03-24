@@ -1,35 +1,51 @@
 const express = require("express");
 const passport = require("passport");
 const mongoose = require("mongoose");
+const log = require("log");
+
+// Routes
+const userRoutes = require("./routes/user");
+
+require("dotenv").config();
 
 const app = express();
 const port = process.env.PORT || 3333;
 
+// Middleware
+app.use(passport.initialize());
+require("./passport-config")(passport);
+
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: false }));
+
+app.use((req, res, next) => {
+  if (req.body) log.info(req.body);
+  if (req.params) log.info(req.params);
+  if (req.query) log.info(req.query);
+  log.info(`Received a ${req.method} request from ${req.ip} for ${req.url}`);
+  next();
+});
 
 // MONGOOSE/MONGO
-mongoose.connect(process.env.MONGOURI || "mongodb://localhost:27017", {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+mongoose.set("useCreateIndex", true);
+mongoose
+  .connect(process.env.MONGOURI || "mongodb://localhost:27017", {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then((_) => console.log("Connected Succuessfully to MongoDB"))
+  .catch((err) => console.error(err));
 
-const db = mongoose.connection;
-db.on("error", console.error.bind(console, "connection error:"));
-db.once("open", function () {
-  console.log("we're connected!");
-});
+const auth = passport.authenticate("jwt", { session: false });
 
-const userSchema = new mongoose.Schema({
-	name:string
+// app.use("/users", auth, userRoutes);
+app.use("/users", userRoutes);
+
+app.get("/", auth, (req, res) => {
+	res.send("you're authed")
 })
 
-const User = mongoose.model('User', userSchema)
-
-
-
-app.get("*", (req, res) => {
-  res.send("hello world");
+app.listen(port, (err) => {
+  if (err) console.error(err);
+  console.log(`App listening on http://localhost:${port}`);
 });
-
-app.listen(port, console.log(`App listening on http://localhost:${port}`));
